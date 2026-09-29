@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TongTong Run">
+<link rel="manifest" id="manifestPlaceholder">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231a1a2e'/><text y='.9em' font-size='80' x='50%' text-anchor='middle'>🏃</text></svg>">
+<title>🏃 فرار از تونگ‌تونگ سحور</title>
+<style>
+  @font-face {
+    font-family: 'Vazirmatn';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url(https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Regular.woff2) format('woff2');
+  }
+  @font-face {
+    font-family: 'Vazirmatn';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url(https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Bold.woff2) format('woff2');
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: #1a1a2e;
+    font-family: 'Vazirmatn', Tahoma, sans-serif;
+    color: white;
+    touch-action: none;
+  }
+
+  #gameWrapper {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+  }
+
+  #gameCanvas {
+    display: block;
+    width: 100%; height: 100%;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    background: #1a1a2e;
+  }
+
+  #hud {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    pointer-events: none;
+    z-index: 10;
+    font-size: 14px;
+    font-weight: bold;
+  }
+  .hud-item {
+    background: rgba(0,0,0,0.5);
+    padding: 6px 12px;
+    border-radius: 10px;
+    border: 2px solid rgba(255,255,255,0.15);
+    color: #ffd700;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  }
+  .hud-item span { color: #fff; }
+
+  #insultBox {
+    position: absolute;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(200, 30, 30, 0.95);
+    color: white;
+    padding: 12px 22px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: bold;
+    border: 3px solid #fff;
+    box-shadow: 0 5px 25px rgba(200,30,30,0.7);
+    z-index: 20;
+    display: none;
+    animation: insultPop 0.4s;
+    max-width: 90%;
+    text-align: center;
+    direction: rtl;
+    line-height: 1.5;
+  }
+  #insultBox.visible { display: block; }
+  #insultBox::before {
+    content: "😡";
+    position: absolute;
+    top: -18px;
+    right: -10px;
+    font-size: 30px;
+    animation: shakeEmoji 0.5s infinite;
+  }
+  @keyframes shakeEmoji {
+    0%, 100% { transform: rotate(-10deg); }
+    50% { transform: rotate(10deg); }
+  }
+  @keyframes insultPop {
+    0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
+    50% { transform: translateX(-50%) scale(1.1); }
+    100% { transform: translateX(-50%) scale(1); opacity: 1; }
+  }
+
+  #joystick {
+    position: absolute;
+    bottom: 30px;
+    left: 30px;
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: 3px solid rgba(255,255,255,0.25);
+    z-index: 15;
+    display: none;
+    touch-action: none;
+  }
+  #joystick.visible { display: block; }
+  #joystickKnob {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 60px;
+    height: 60px;
+    background: rgba(255,215,0,0.6);
+    border: 3px solid rgba(255,215,0,0.9);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    box-shadow: 0 0 20px rgba(255,215,0,0.5);
+  }
+  #joystickKnob::after {
+    content: "⬆";
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 22px;
+    color: #1a1a2e;
+    font-weight: bold;
+  }
+
+  #jumpBtn {
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: rgba(255, 215, 0, 0.25);
+    border: 4px solid rgba(255, 215, 0, 0.7);
+    color: #ffd700;
+    font-size: 36px;
+    font-weight: bold;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 15;
+    cursor: pointer;
+    box-shadow: 0 5px 25px rgba(255,215,0,0.3);
+    font-family: Tahoma;
+    touch-action: none;
+  }
+  #jumpBtn.visible { display: flex; }
+  #jumpBtn:active {
+    background: rgba(255, 215, 0, 0.6);
+    transform: scale(0.92);
+  }
+
+  #startScreen {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 30;
+    padding: 25px;
+    text-align: center;
+    overflow-y: auto;
+  }
+  #startScreen.hidden { display: none; }
+  .game-title {
+    font-size: 28px;
+    font-weight: bold;
+    color: #ffd700;
+    margin-bottom: 8px;
+    text-shadow: 0 0 30px rgba(255,215,0,0.6);
+    animation: titlePulse 2s infinite;
+  }
+  @keyframes titlePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  .game-subtitle {
+    font-size: 13px;
+    color: #aaa;
+    margin-bottom: 20px;
+  }
+  .tongtong-preview {
+    font-size: 60px;
+    margin-bottom: 15px;
+    animation: bob 1.5s infinite;
+  }
+  @keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  .high-score {
+    background: rgba(255,215,0,0.15);
+    border: 2px solid #ffd700;
+    border-radius: 15px;
+    padding: 10px 22px;
+    margin-bottom: 20px;
+    font-size: 14px;
+  }
+  .high-score span { color: #ffd700; font-weight: bold; font-size: 20px; }
+  .play-btn {
+    padding: 15px 45px;
+    font-size: 17px;
+    font-weight: bold;
+    font-family: 'Vazirmatn', Tahoma;
+    border: 3px solid #ffd700;
+    border-radius: 15px;
+    background: rgba(255, 215, 0, 0.15);
+    color: #ffd700;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 5px 25px rgba(255,215,0,0.3);
+  }
+  .play-btn:active {
+    background: #ffd700;
+    color: #1a1a2e;
+    transform: scale(0.96);
+  }
+  .controls-info {
+    margin-top: 20px;
+    font-size: 12px;
+    color: #888;
+    line-height: 1.8;
+  }
+  .controls-info kbd {
+    background: rgba(255,255,255,0.1);
+    padding: 3px 8px;
+    border-radius: 5px;
+    border: 1px solid rgba(255,255,255,0.2);
+    font-family: Tahoma;
+    font-size: 11px;
+  }
+
+  #gameOverScreen {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(20, 0, 0, 0.94);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 40;
+    padding: 25px;
+    text-align: center;
+    animation: fadeIn 0.4s;
+    overflow-y: auto;
+  }
+  #gameOverScreen.visible { display: flex; }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .gameover-title {
+    font-size: 32px;
+    font-weight: bold;
+    color: #ff4444;
+    margin-bottom: 12px;
+    text-shadow: 0 0 30px rgba(255,68,68,0.8);
+    animation: shakeTitle 0.5s;
+  }
+  @keyframes shakeTitle {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+  }
+  .gameover-tongtong {
+    font-size: 55px;
+    margin-bottom: 12px;
+  }
+  .gameover-insult {
+    font-size: 15px;
+    color: #ff8888;
+    margin-bottom: 22px;
+    font-weight: bold;
+    max-width: 90%;
+    line-height: 1.6;
+  }
+  .final-score {
+    font-size: 15px;
+    margin-bottom: 6px;
+    color: #ccc;
+  }
+  .final-score span {
+    font-size: 26px;
+    font-weight: bold;
+    color: #ffd700;
+    display: block;
+    margin-top: 4px;
+  }
+  .new-record {
+    color: #00ff88;
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    animation: recordPulse 1s infinite;
+  }
+  @keyframes recordPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+  .gameover-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .btn-restart, .btn-menu {
+    padding: 12px 28px;
+    font-size: 14px;
+    font-weight: bold;
+    font-family: 'Vazirmatn', Tahoma;
+    border-radius: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 3px solid;
+  }
+  .btn-restart {
+    background: rgba(0, 255, 136, 0.15);
+    border-color: #00ff88;
+    color: #00ff88;
+  }
+  .btn-restart:active { background: #00ff88; color: #1a1a2e; }
+  .btn-menu {
+    background: rgba(255, 215, 0, 0.15);
+    border-color: #ffd700;
+    color: #ffd700;
+  }
+  .btn-menu:active { background: #ffd700; color: #1a1a2e; }
+
+  #soundBtn {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.5);
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 6px 12px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    z-index: 10;
+    pointer-events: auto;
+  }
+
+  @media (max-width: 480px) {
+    .game-title { font-size: 22px; }
+    .gameover-title { font-size: 26px; }
+    #joystick { width: 110px; height: 110px; bottom: 25px; left: 20px; }
+    #joystickKnob { width: 52px; height: 52px; }
+    #jumpBtn { width: 80px; height: 80px; font-size: 32px; right: 20px; bottom: 25px; }
+    .hud-item { font-size: 12px; padding: 5px 10px; }
+    #insultBox { font-size: 14px; padding: 10px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="gameWrapper">
+  <canvas id="gameCanvas"></canvas>
+
+  <div id="hud">
+    <div class="hud-item">🏆 <span id="scoreDisplay">0</span></div>
+    <div class="hud-item">👑 <span id="highScoreDisplay">0</span></div>
+  </div>
+
+  <button id="soundBtn" onclick="toggleSound()">🔊</button>
+
+  <div id="insultBox"></div>
+
+  <div id="joystick">
+    <div id="joystickKnob"></div>
+  </div>
+
+  <button id="jumpBtn" ontouchstart="event.preventDefault(); jump();" onmousedown="jump();">⬆️</button>
+
+  <div id="startScreen">
+    <div class="tongtong-preview">🪵🔨😡</div>
+    <div class="game-title">فرار از تونگ‌تونگ سحور</div>
+    <div class="game-subtitle">از دستش فرار کن و ازش جلو بزن! 😈</div>
+
+    <div class="high-score">
+      🏆 رکورد: <span id="startHighScore">0</span>
+    </div>
+
+    <button class="play-btn" onclick="startGame()">▶️ شروع بازی</button>
+
+    <div class="controls-info">
+      <div>📱 موبایل: جوی‌استیک (چپ) + دکمه پرش (راست)</div>
+      <div>💻 کامپیوتر: <kbd>A/D</kbd> یا <kbd>←/→</kbd> حرکت · <kbd>Space</kbd> پرش</div>
+    </div>
+  </div>
+
+  <div id="gameOverScreen">
+    <div class="gameover-tongtong">🪵🔨😡</div>
+    <div class="gameover-title">گرفتت! 😂</div>
+    <div class="gameover-insult" id="gameOverInsult"></div>
+    <div class="final-score">
+      امتیازت:
+      <span id="finalScore">0</span>
+    </div>
+    <div class="new-record" id="newRecord" style="display:none;">🎉 رکورد جدید زدی!</div>
+    <div class="gameover-buttons">
+      <button class="btn-restart" onclick="restartGame()">🔄 دوباره</button>
+      <button class="btn-menu" onclick="goToMenu()">🏠 منو</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  let W = 0, H = 0;
+  let dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  let gameState = 'menu';
+  let score = 0;
+  let highScore = parseInt(localStorage.getItem('tt_highScore') || '0');
+  let speed = 6;
+  let baseSpeed = 6;
+  let scoreTimer = 0;
+  let gameTime = 0;
+  let soundEnabled = true;
+  let cameraX = 0;
+
+  // ===== بازیکن =====
+  const player = {
+    x: 0, y: 0, width: 44, height: 55,
+    vy: 0, jumping: false,
+    jumpPower: -15, gravity: 0.75,
+    frame: 0, animTimer: 0
+  };
+
+  // ===== تونگ‌تونگ لاغر با هوش مصنوعی =====
+  const tongtong = {
+    x: 0, y: 0, width: 40, height: 95,
+    vy: 0, jumping: false,
+    jumpPower: -16, gravity: 0.75,
+    speed: 0,
+    baseSpeed: 5.5,
+    maxSpeed: 8.5,
+    frame: 0, animTimer: 0,
+    insultTimer: 0,
+    clubSwing: 0,
+    clubTimer: 0,
+    tongueOut: 0,
+    tongueTimer: 0
+  };
+
+  // ===== پلتفرم‌ها =====
+  let platforms = [];
+
+  // ===== موانع =====
+  let obstacles = [];
+  let obstacleTimer = 0;
+  let nextObstacleTime = 90;
+
+  // ===== ذرات =====
+  let particles = [];
+
+  // ===== ابرها =====
+  let clouds = [];
+  for (let i = 0; i < 6; i++) {
+    clouds.push({
+      x: Math.random() * 2000,
+      y: 40 + Math.random() * 120,
+      size: 40 + Math.random() * 40,
+      speed: 0.2 + Math.random() * 0.3
+    });
+  }
+
+  // ===== کوه‌ها =====
+  let mountains = [];
+  for (let i = 0; i < 12; i++) {
+    mountains.push({
+      x: i * 180,
+      height: 90 + Math.random() * 90,
+      width: 150 + Math.random() * 100
+    });
+  }
+
+  // ===== فحش‌های حین بازی =====
+  const INSULTS = [
+    'پسره‌ی احمق! 🪵',
+    'بی‌شعور!',
+    'خنگول!',
+    'کله‌پوک!',
+    'دیوونه!',
+    'مرتیکه!',
+    'پدرسوخته!',
+    'خفه شو بدو!',
+    'آخه تو کجاشو دیدی؟',
+    'بی‌عرضه!',
+    'نفهم!',
+    'گاگول!',
+    'احمق‌تر از این نبودی!',
+    'تو که بلد نیستی!',
+    'بچه‌ی ننه!',
+    'خرفت!',
+    'گیج!',
+    'دیرفهم!',
+    'تو یه تخمی هستی!',
+    'عقب‌مونده!',
+    'من از تو باهوش‌ترم!',
+    'فکر کردی کی هستی؟',
+    'تو حتی نمی‌تونی درست بدوی!',
+    'بیا اینجا اگه جرأت داری!',
+    'مثل یه لاک‌پشت می‌دوی!',
+    'خجالت بکش!',
+    'تو اصلاً بدو بلد نیستی!',
+    'این چه وضع دویدنه؟',
+    'باید بری کلاس دو!',
+    'فکر کردی من شوخیم؟',
+    'احمقِ خنگ!',
+    'بی‌مخ!',
+    'کودن!',
+    'نادون!'
+  ];
+
+  const GAMEOVER_INSULTS = [
+    'گرفتمت، پسره‌ی احمق! 😈',
+    'بالاخره گرفتمت، بی‌شعور!',
+    'همین بود؟ خنگول!',
+    'بدو بدو... نه بابا دیر شده!',
+    'به مامانت می‌گم چقدر خنگی!',
+    'این بود هنرت، گاگول؟',
+    'باید بیشتر تمرین کنی، نفهم!',
+    'من برنده شدم، تو باختی!',
+    'آخه این چه دویدنیه، کله‌پوک؟',
+    'دفعه‌ی بعد بهتر باش، اگه جرأت داری!',
+    'خجالت بکش! از یه تونگ‌تونگ چوبی باختی!',
+    'حالا برو به مامانت بگو!'
+  ];
+
+  // ===== صدا =====
+  let audioCtx = null;
+  function initAudio() {
+    if (soundEnabled && !audioCtx) {
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+    }
+  }
+  function playSound(freq, duration, type, volume) {
+    if (!soundEnabled || !audioCtx) return;
+    try {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.frequency.value = freq; osc.type = type || 'square';
+      gain.gain.setValueAtTime(volume || 0.08, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration / 1000);
+      osc.start(); osc.stop(audioCtx.currentTime + duration / 1000);
+    } catch(e) {}
+  }
+  function playJumpSound() { playSound(400, 100, 'square', 0.06); setTimeout(() => playSound(600, 80, 'square', 0.05), 50); }
+  function playHitSound() { playSound(150, 200, 'sawtooth', 0.1); }
+  function playScoreSound() { playSound(800, 60, 'square', 0.04); }
+  function playInsultSound() { playSound(200, 100, 'sawtooth', 0.06); setTimeout(() => playSound(150, 150, 'sawtooth', 0.05), 100); }
+
+  function toggleSound() {
+    soundEnabled = !soundEnabled;
+    document.getElementById('soundBtn').textContent = soundEnabled ? '🔊' : '🔇';
+    localStorage.setItem('tt_sound', soundEnabled);
+  }
+  soundEnabled = localStorage.getItem('tt_sound') !== 'false';
+  document.getElementById('soundBtn').textContent = soundEnabled ? '🔊' : '🔇';
+
+  // ===== ریسایز =====
+  function resize() {
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+
+    if ('ontouchstart' in window && W < 900) {
+      document.getElementById('joystick').classList.add('visible');
+      document.getElementById('jumpBtn').classList.add('visible');
+    }
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // ===== زمین =====
+  function getGroundY() { return H - 100; }
+
+  function initPlatforms() {
+    platforms = [];
+    const groundY = getGroundY();
+    for (let i = 0; i < 20; i++) {
+      platforms.push({
+        x: 600 + i * 350 + Math.random() * 100,
+        y: groundY - (60 + Math.random() * 100),
+        width: 100 + Math.random() * 80,
+        height: 20
+      });
+    }
+  }
+
+  function spawnPlatform() {
+    const groundY = getGroundY();
+    const lastX = platforms.length > 0 ? platforms[platforms.length - 1].x : cameraX;
+    platforms.push({
+      x: lastX + 250 + Math.random() * 200,
+      y: groundY - (50 + Math.random() * 130),
+      width: 90 + Math.random() * 90,
+      height: 20
+    });
+  }
+
+  // ===== جوی‌استیک =====
+  const joystick = document.getElementById('joystick');
+  const joystickKnob = document.getElementById('joystickKnob');
+  let joystickActive = false;
+  let joystickCenter = { x: 0, y: 0 };
+  let joystickValue = { x: 0, y: 0 };
+  const maxJoystickDist = 45;
+
+  function getJoystickCenter() {
+    const rect = joystick.getBoundingClientRect();
+    joystickCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+  }
+  function handleJoystickStart(e) {
+    e.preventDefault(); joystickActive = true; getJoystickCenter(); handleJoystickMove(e);
+  }
+  function handleJoystickMove(e) {
+    if (!joystickActive) return;
+    e.preventDefault();
+    const touch = e.touches ? e.touches[0] : e;
+    let dx = touch.clientX - joystickCenter.x;
+    let dy = touch.clientY - joystickCenter.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist > maxJoystickDist) { dx = (dx / dist) * maxJoystickDist; dy = (dy / dist) * maxJoystickDist; }
+    joystickKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+    joystickValue.x = dx / maxJoystickDist;
+    joystickValue.y = dy / maxJoystickDist;
+    if (joystickValue.y < -0.6 && !player.jumping && gameState === 'playing') jump();
+  }
+  function handleJoystickEnd(e) {
+    e.preventDefault(); joystickActive = false;
+    joystickKnob.style.transform = 'translate(-50%, -50%)';
+    joystickValue.x = 0; joystickValue.y = 0;
+  }
+  joystick.addEventListener('touchstart', handleJoystickStart, { passive: false });
+  joystick.addEventListener('touchmove', handleJoystickMove, { passive: false });
+  joystick.addEventListener('touchend', handleJoystickEnd, { passive: false });
+  joystick.addEventListener('mousedown', handleJoystickStart);
+  document.addEventListener('mousemove', handleJoystickMove);
+  document.addEventListener('mouseup', handleJoystickEnd);
+
+  // ===== پرش =====
+  function jump() {
+    if (gameState !== 'playing') return;
+    if (player.jumping) return;
+    initAudio();
+    player.vy = player.jumpPower;
+    player.jumping = true;
+    playJumpSound();
+    for (let i = 0; i < 6; i++) {
+      particles.push({
+        x: player.x + player.width / 2,
+        y: player.y + player.height,
+        vx: (Math.random() - 0.5) * 4,
+        vy: -Math.random() * 3,
+        life: 20, size: 2 + Math.random() * 3
+      });
+    }
+  }
+
+  // ===== کنترل کیبورد =====
+  const keys = {};
+  document.addEventListener('keydown', (e) => {
+    keys[e.key.toLowerCase()] = true;
+    if (e.code === 'Space' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+      e.preventDefault();
+      if (gameState === 'menu') startGame();
+      else if (gameState === 'gameover') restartGame();
+      else jump();
+    }
+    if (e.key === 'Escape' && gameState === 'playing') showGameOver();
+  });
+  document.addEventListener('keyup', (e) => {
+    keys[e.key.toLowerCase()] = false;
+  });
+
+  canvas.addEventListener('mousedown', () => {
+    if (gameState === 'menu') startGame();
+    else if (gameState === 'gameover') restartGame();
+    else jump();
+  });
+  canvas.addEventListener('touchstart', (e) => {
+    if (e.target.closest('#joystick') || e.target.closest('#jumpBtn') || e.target.closest('#soundBtn')) return;
+    e.preventDefault();
+    if (gameState === 'menu') startGame();
+    else if (gameState === 'gameover') restartGame();
+    else jump();
+  }, { passive: false });
+
+  // ===== شروع =====
+  function startGame() {
+    initAudio();
+    gameState = 'playing';
+    score = 0; gameTime = 0;
+    speed = baseSpeed; scoreTimer = 0;
+    obstacles = []; particles = [];
+    obstacleTimer = 0; nextObstacleTime = 90;
+    cameraX = 0;
+    
+    player.x = 120; 
+    player.y = getGroundY() - player.height;
+    player.vy = 0; player.jumping = false;
+    
+    tongtong.x = -100;
+    tongtong.y = getGroundY() - tongtong.height;
+    tongtong.vy = 0; tongtong.jumping = false;
+    tongtong.speed = tongtong.baseSpeed;
+    tongtong.insultTimer = 0;
+    tongtong.clubTimer = 0;
+    
+    initPlatforms();
+    
+    document.getElementById('startScreen').classList.add('hidden');
+    document.getElementById('gameOverScreen').classList.remove('visible');
+    document.getElementById('scoreDisplay').textContent = '0';
+    document.getElementById('highScoreDisplay').textContent = highScore;
+    hideInsult();
+  }
+
+  function restartGame() { startGame(); }
+  function goToMenu() {
+    gameState = 'menu';
+    document.getElementById('startScreen').classList.remove('hidden');
+    document.getElementById('gameOverScreen').classList.remove('visible');
+    document.getElementById('startHighScore').textContent = highScore;
+  }
+
+  function showInsult(text) {
+    const box = document.getElementById('insultBox');
+    box.textContent = text;
+    box.classList.add('visible');
+    playInsultSound();
+    clearTimeout(box._timer);
+    box._timer = setTimeout(hideInsult, 2200);
+  }
+  function hideInsult() { document.getElementById('insultBox').classList.remove('visible'); }
+
+  function showGameOver() {
+    gameState = 'gameover';
+    const isNewRecord = score > highScore;
+    if (isNewRecord) { highScore = score; localStorage.setItem('tt_highScore', highScore); }
+    document.getElementById('finalScore').textContent = score;
+    document.getElementById('gameOverInsult').textContent = 'تونگ‌تونگ میگه: ' + GAMEOVER_INSULTS[Math.floor(Math.random() * GAMEOVER_INSULTS.length)];
+    document.getElementById('newRecord').style.display = isNewRecord ? 'block' : 'none';
+    document.getElementById('gameOverScreen').classList.add('visible');
+    document.getElementById('highScoreDisplay').textContent = highScore;
+    playHitSound();
+  }
+
+  // ===== برخورد با پلتفرم =====
+  function checkPlatformCollision(entity) {
+    const groundY = getGroundY();
+    let platformY = groundY;
+    
+    for (let p of platforms) {
+      if (entity.x + entity.width > p.x && entity.x < p.x + p.width) {
+        if (entity.vy >= 0 && 
+            entity.y + entity.height >= p.y && 
+            entity.y + entity.height <= p.y + p.height + 15) {
+          if (p.y < platformY) {
+            platformY = p.y;
+          }
+        }
+      }
+    }
+    
+    return platformY;
+  }
+
+  // ===== مانع =====
+  function spawnObstacle() {
+    const types = ['cactus_small', 'cactus_big', 'cactus_group', 'fire'];
+    const type = types[Math.floor(Math.random() * types.length)];
+    let w, h;
+    if (type === 'cactus_small') { w = 28; h = 45; }
+    else if (type === 'cactus_big') { w = 38; h = 65; }
+    else if (type === 'cactus_group') { w = 65; h = 50; }
+    else { w = 30; h = 40; }
+    obstacles.push({
+      x: cameraX + W + 20,
+      y: getGroundY() - h,
+      width: w, height: h, type: type,
+      passed: false, frame: 0, animTimer: 0
+    });
+  }
+
+  // ===== به‌روزرسانی =====
+  function update(dt) {
+    if (gameState !== 'playing') return;
+
+    gameTime += dt;
+    scoreTimer += dt;
+    speed = baseSpeed + Math.min(gameTime / 500, 7);
+
+    if (scoreTimer >= 6) {
+      score += 1; scoreTimer = 0;
+      document.getElementById('scoreDisplay').textContent = score;
+      if (score % 10 === 0) playScoreSound();
+    }
+
+    // ===== فیزیک بازیکن =====
+    player.vy += player.gravity;
+    player.y += player.vy;
+
+    const playerCol = checkPlatformCollision(player);
+    if (player.y + player.height >= playerCol) {
+      player.y = playerCol - player.height;
+      player.vy = 0;
+      player.jumping = false;
+    }
+
+    // ===== حرکت افقی: جوی‌استیک + کیبورد =====
+    let moveX = 0;
+    if (joystickActive && Math.abs(joystickValue.x) > 0.15) {
+      moveX = joystickValue.x;
+    }
+    if (keys['a'] || keys['arrowleft']) moveX = -1;
+    if (keys['d'] || keys['arrowright']) moveX = 1;
+    if (moveX !== 0) {
+      player.x += moveX * 5;
+    }
+
+    // دوربین
+    cameraX = player.x - W * 0.35;
+
+    // انیمیشن بازیکن
+    player.animTimer += dt;
+    if (player.animTimer > 6) { player.animTimer = 0; player.frame = (player.frame + 1) % 2; }
+
+    // ===== هوش مصنوعی تونگ‌تونگ =====
+    tongtong.aiTimer = (tongtong.aiTimer || 0) + dt;
+    tongtong.insultTimer += dt;
+    tongtong.clubTimer += dt;
+    tongtong.tongueTimer += dt;
+    if (tongtong.clubTimer > 12) { tongtong.clubTimer = 0; tongtong.clubSwing = (tongtong.clubSwing + 1) % 4; }
+    if (tongtong.tongueTimer > 30) { tongtong.tongueTimer = 0; tongtong.tongueOut = (tongtong.tongueOut + 1) % 2; }
+
+    const distance = player.x - tongtong.x;
+    
+    if (distance > 200) {
+      tongtong.speed = Math.min(tongtong.maxSpeed, tongtong.speed + 0.05);
+    } else if (distance < 100) {
+      tongtong.speed = Math.max(tongtong.baseSpeed * 0.7, tongtong.speed - 0.03);
+    } else {
+      tongtong.speed = tongtong.baseSpeed + (speed - baseSpeed) * 0.8;
+    }
+    
+    if (tongtong.x < player.x - 30) {
+      tongtong.x += tongtong.speed;
+    } else if (tongtong.x > player.x + 30) {
+      tongtong.x -= tongtong.speed * 0.8;
+    } else {
+      tongtong.x += tongtong.speed * 0.5;
+    }
+
+    // فیزیک تونگ‌تونگ
+    tongtong.vy += tongtong.gravity;
+    tongtong.y += tongtong.vy;
+    
+    const ttCol = checkPlatformCollision(tongtong);
+    if (tongtong.y + tongtong.height >= ttCol) {
+      tongtong.y = ttCol - tongtong.height;
+      tongtong.vy = 0;
+      tongtong.jumping = false;
+    }
+
+    // هوش مصنوعی پرش تونگ‌تونگ
+    if (!tongtong.jumping) {
+      for (let obs of obstacles) {
+        const obsDist = obs.x - tongtong.x;
+        if (obsDist > 0 && obsDist < 100 && obs.y + obs.height > tongtong.y + tongtong.height - 10) {
+          tongtong.vy = tongtong.jumpPower;
+          tongtong.jumping = true;
+          break;
+        }
+      }
+      if (!tongtong.jumping && player.y + player.height < tongtong.y + tongtong.height - 40) {
+        if (Math.random() < 0.06) {
+          tongtong.vy = tongtong.jumpPower;
+          tongtong.jumping = true;
+        }
+      }
+    }
+
+    // انیمیشن تونگ‌تونگ
+    tongtong.animTimer += dt;
+    if (tongtong.animTimer > 8) { tongtong.animTimer = 0; tongtong.frame = (tongtong.frame + 1) % 2; }
+
+    // برخورد
+    if (
+      player.x + player.width - 10 > tongtong.x &&
+      player.x + 10 < tongtong.x + tongtong.width &&
+      player.y + player.height > tongtong.y + 10 &&
+      player.y + 10 < tongtong.y + tongtong.height
+    ) {
+      showGameOver();
+      return;
+    }
+
+    // ===== فحش‌های حین بازی =====
+    if (tongtong.insultTimer > 120 + Math.random() * 150) {
+      tongtong.insultTimer = 0;
+      showInsult(INSULTS[Math.floor(Math.random() * INSULTS.length)]);
+    }
+
+    // ===== موانع =====
+    obstacleTimer += dt;
+    if (obstacleTimer >= nextObstacleTime) {
+      obstacleTimer = 0;
+      nextObstacleTime = Math.max(45, 95 - gameTime / 25) + Math.random() * 35;
+      spawnObstacle();
+    }
+
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+      const obs = obstacles[i];
+      if (obs.type === 'fire') {
+        obs.animTimer += dt;
+        if (obs.animTimer > 5) { obs.animTimer = 0; obs.frame = (obs.frame + 1) % 3; }
+      }
+      if (!obs.passed && obs.x + obs.width < player.x) obs.passed = true;
+      if (obs.x + obs.width < cameraX - 100) obstacles.splice(i, 1);
+    }
+
+    // ===== پلتفرم‌های جدید =====
+    if (platforms.length > 0) {
+      const lastX = platforms[platforms.length - 1].x;
+      if (lastX < cameraX + W + 400) {
+        spawnPlatform();
+      }
+    }
+    platforms = platforms.filter(p => p.x + p.width > cameraX - 200);
+
+    // ===== ذرات =====
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life--;
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+
+    // ===== ابرها =====
+    for (let c of clouds) {
+      c.x -= c.speed;
+      if (c.x < cameraX - c.size * 2) {
+        c.x = cameraX + W + c.size;
+        c.y = 40 + Math.random() * 120;
+      }
+    }
+  }
+
+  // ===== رسم =====
+  function draw() {
+    const groundY = getGroundY();
+    
+    // آسمون
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, H);
+    skyGrad.addColorStop(0, '#0a0a1e');
+    skyGrad.addColorStop(0.5, '#1a1a3e');
+    skyGrad.addColorStop(1, '#2a1a3e');
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // ستاره‌ها
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    for (let i = 0; i < 60; i++) {
+      const sx = ((i * 137 - cameraX * 0.1) % W + W) % W;
+      const sy = (i * 89) % (H * 0.55);
+      const twinkle = Math.sin(Date.now() * 0.003 + i) * 0.3 + 0.7;
+      ctx.globalAlpha = twinkle;
+      ctx.fillRect(sx, sy, 2, 2);
+    }
+    ctx.globalAlpha = 1;
+
+    // ماه
+    ctx.fillStyle = 'rgba(255,255,220,0.9)';
+    ctx.beginPath();
+    ctx.arc(W - 90 - cameraX * 0.05, 90, 35, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(10,10,30,0.95)';
+    ctx.beginPath();
+    ctx.arc(W - 78 - cameraX * 0.05, 80, 32, 0, Math.PI * 2);
+    ctx.fill();
+
+    // کوه‌ها
+    ctx.fillStyle = 'rgba(25, 35, 65, 0.7)';
+    for (let m of mountains) {
+      const mx = m.x - cameraX * 0.3;
+      if (mx > -m.width && mx < W + m.width) {
+        ctx.beginPath();
+        ctx.moveTo(mx, groundY);
+        ctx.lineTo(mx + m.width / 2, groundY - m.height);
+        ctx.lineTo(mx + m.width, groundY);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+
+    // ابرها
+    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    for (let c of clouds) {
+      const cx = c.x - cameraX * 0.5;
+      if (cx > -c.size * 3 && cx < W + c.size * 3) {
+        ctx.beginPath();
+        ctx.arc(cx, c.y, c.size, 0, Math.PI * 2);
+        ctx.arc(cx + c.size * 0.8, c.y - c.size * 0.3, c.size * 0.7, 0, Math.PI * 2);
+        ctx.arc(cx + c.size * 1.5, c.y, c.size * 0.9, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // زمین
+    ctx.fillStyle = '#2d2d4a';
+    ctx.fillRect(0, groundY, W, H - groundY);
+    ctx.fillStyle = '#4a4a6e';
+    ctx.fillRect(0, groundY, W, 3);
+
+    // خطوط زمین
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 2;
+    const groundOffset = (-cameraX) % 60;
+    for (let i = -1; i < W / 60 + 2; i++) {
+      const x = i * 60 + groundOffset;
+      ctx.beginPath();
+      ctx.moveTo(x, groundY + 15);
+      ctx.lineTo(x + 30, groundY + 15);
+      ctx.stroke();
+    }
+
+    // پلتفرم‌ها
+    for (let p of platforms) {
+      const px = p.x - cameraX;
+      if (px > -p.width && px < W + p.width) {
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.fillRect(px + 3, p.y + 3, p.width, p.height);
+        ctx.fillStyle = '#5d4a3a';
+        ctx.fillRect(px, p.y, p.width, p.height);
+        ctx.fillStyle = '#7a6248';
+        ctx.fillRect(px, p.y, p.width, 5);
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        for (let i = 0; i < p.width; i += 20) {
+          ctx.fillRect(px + i, p.y + 5, 2, p.height - 5);
+        }
+      }
+    }
+
+    // ذرات
+    for (let p of particles) {
+      ctx.globalAlpha = p.life / 20;
+      ctx.fillStyle = '#ffd700';
+      ctx.fillRect(p.x - cameraX, p.y, p.size, p.size);
+    }
+    ctx.globalAlpha = 1;
+
+    // موانع
+    for (let obs of obstacles) {
+      const ox = obs.x - cameraX;
+      if (ox > -obs.width - 50 && ox < W + 50) {
+        drawObstacle(obs, ox);
+      }
+    }
+
+    // بازیکن
+    drawPlayer(player.x - cameraX, player.y, player.frame, player.jumping);
+
+    // تونگ‌تونگ
+    drawTongTong(tongtong.x - cameraX, tongtong.y, tongtong.frame, tongtong.clubSwing, tongtong.tongueOut);
+  }
+
+  // ===== رسم بازیکن =====
+  function drawPlayer(x, y, frame, jumping) {
+    ctx.save();
+    ctx.translate(x, y);
+
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(22, 57, 20, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#3498db';
+    ctx.fillRect(10, 22, 26, 22);
+
+    ctx.fillStyle = '#ffdbac';
+    ctx.fillRect(12, 6, 22, 18);
+
+    ctx.fillStyle = '#2c1810';
+    ctx.fillRect(12, 6, 22, 6);
+    ctx.fillRect(8, 9, 5, 10);
+
+    ctx.fillStyle = '#000';
+    ctx.fillRect(20, 14, 3, 3);
+
+    ctx.fillStyle = '#c0392b';
+    ctx.fillRect(17, 19, 9, 2);
+
+    ctx.fillStyle = '#2c3e50';
+    if (jumping) {
+      ctx.fillRect(12, 44, 9, 10);
+      ctx.fillRect(25, 42, 9, 9);
+    } else if (frame === 0) {
+      ctx.fillRect(10, 44, 9, 13);
+      ctx.fillRect(25, 44, 9, 11);
+    } else {
+      ctx.fillRect(12, 44, 9, 11);
+      ctx.fillRect(23, 44, 9, 13);
+    }
+
+    ctx.fillStyle = '#e74c3c';
+    if (jumping) {
+      ctx.fillRect(10, 52, 13, 4);
+      ctx.fillRect(23, 48, 13, 4);
+    } else if (frame === 0) {
+      ctx.fillRect(8, 55, 13, 4);
+      ctx.fillRect(25, 53, 13, 4);
+    } else {
+      ctx.fillRect(12, 53, 13, 4);
+      ctx.fillRect(21, 55, 13, 4);
+    }
+
+    ctx.fillStyle = '#ffdbac';
+    if (jumping) {
+      ctx.fillRect(2, 17, 7, 11);
+      ctx.fillRect(38, 14, 7, 11);
+    } else {
+      ctx.fillRect(2, 25, 7, 13);
+      ctx.fillRect(38, 25, 7, 13);
+    }
+
+    ctx.restore();
+  }
+
+  // ===== رسم تونگ‌تونگ لاغر =====
+  function drawTongTong(x, y, frame, clubSwing, tongueOut) {
+    ctx.save();
+    ctx.translate(x, y);
+
+    // ===== سایه =====
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    ctx.beginPath();
+    ctx.ellipse(20, 98, 22, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // ===== پاهای چوبی لاغر و بلند =====
+    const legSwing = frame === 0 ? 4 : -4;
+    ctx.fillStyle = '#6b3f1a';
+    ctx.fillRect(10 + legSwing, 68, 9, 28);
+    ctx.fillRect(22 - legSwing, 68, 9, 28);
+    
+    // کفش چوبی
+    ctx.fillStyle = '#3d2510';
+    ctx.fillRect(7 + legSwing, 92, 14, 6);
+    ctx.fillRect(19 - legSwing, 92, 14, 6);
+    ctx.fillStyle = '#2a1808';
+    ctx.fillRect(7 + legSwing, 96, 14, 1);
+    ctx.fillRect(19 - legSwing, 96, 14, 1);
+
+    // ===== بدن چوبی لاغر و کشیده =====
+    const bodyGrad = ctx.createLinearGradient(10, 0, 30, 70);
+    bodyGrad.addColorStop(0, '#a06a2c');
+    bodyGrad.addColorStop(0.5, '#8b5a2b');
+    bodyGrad.addColorStop(1, '#6b3f1a');
+    ctx.fillStyle = bodyGrad;
+    ctx.fillRect(11, 32, 20, 38);
+
+    // بافت چوب (خطوط عمودی)
+    ctx.strokeStyle = '#5d3a1a';
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.moveTo(14 + i * 5, 35);
+      ctx.lineTo(14 + i * 5, 68);
+      ctx.stroke();
+    }
+
+    // حلقه‌های درخت روی بدن
+    ctx.strokeStyle = '#4a2a10';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(21, 50, 7, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(21, 50, 4, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // ===== سر چوبی کشیده =====
+    const headGrad = ctx.createRadialGradient(21, 15, 3, 21, 15, 18);
+    headGrad.addColorStop(0, '#b8804a');
+    headGrad.addColorStop(0.7, '#a06a2c');
+    headGrad.addColorStop(1, '#7a4f1a');
+    ctx.fillStyle = headGrad;
+    ctx.fillRect(8, 2, 26, 32);
+
+    // حلقه‌های سن درخت روی سر
+    ctx.strokeStyle = '#5d3a1a';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(21, 15, 11, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(21, 15, 7, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(21, 15, 3, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // ===== چشم‌های درشت و گرد =====
+    // حفره چشم چپ
+    ctx.fillStyle = '#4a2a10';
+    ctx.beginPath();
+    ctx.arc(15, 13, 6, 0, Math.PI * 2);
+    ctx.fill();
+    // حفره چشم راست
+    ctx.beginPath();
+    ctx.arc(27, 13, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // سفیدی چشم چپ
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(15, 13, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    // سفیدی چشم راست
+    ctx.beginPath();
+    ctx.arc(27, 13, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // مردمک‌ها
+    ctx.fillStyle = '#000';
+    if (frame === 0) {
+      ctx.beginPath();
+      ctx.arc(16.5, 13, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(28.5, 13, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.beginPath();
+      ctx.arc(15.5, 14, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(27.5, 14, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // نقاط نور
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(17, 11.5, 0.9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(29, 11.5, 0.9, 0, Math.PI * 2);
+    ctx.fill();
+
+    // ===== ابروهای خشمگین =====
+    ctx.fillStyle = '#4a2a10';
+    ctx.save();
+    ctx.translate(15, 7);
+    ctx.rotate(0.35);
+    ctx.fillRect(-5, 0, 10, 2.5);
+    ctx.restore();
+    ctx.save();
+    ctx.translate(27, 7);
+    ctx.rotate(-0.35);
+    ctx.fillRect(-5, 0, 10, 2.5);
+    ctx.restore();
+
+    // ===== دهان گشاد =====
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.ellipse(21, 24, 7, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#8b0000';
+    ctx.beginPath();
+    ctx.ellipse(21, 24, 5.5, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // زبان (وقتی tongueOut == 1)
+    if (tongueOut === 1) {
+      ctx.fillStyle = '#e74c3c';
+      ctx.beginPath();
+      ctx.ellipse(21, 28, 2.5, 3, 0, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.fillStyle = '#c0392b';
+      ctx.beginPath();
+      ctx.ellipse(21, 26, 3.5, 1.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    // دندان‌ها
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(17, 21, 2, 2);
+    ctx.fillRect(23, 21, 2, 2);
+
+    // ===== دست‌های لاغر =====
+    const armSwing = frame === 0 ? 4 : -4;
+    
+    // دست چپ (لاغر و بلند)
+    ctx.fillStyle = '#8b5a2b';
+    ctx.fillRect(0, 36 + armSwing, 8, 20);
+    ctx.fillStyle = '#6b3f1a';
+    ctx.fillRect(0, 36 + armSwing, 8, 2);
+    
+    // مشت چپ
+    ctx.fillStyle = '#a06a2c';
+    ctx.beginPath();
+    ctx.arc(4, 56 + armSwing, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#5d3a1a';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // دست راست
+    ctx.fillStyle = '#8b5a2b';
+    ctx.fillRect(34, 36 - armSwing, 8, 20);
+    ctx.fillStyle = '#6b3f1a';
+    ctx.fillRect(34, 36 - armSwing, 8, 2);
+    
+    // مشت راست
+    ctx.fillStyle = '#a06a2c';
+    ctx.beginPath();
+    ctx.arc(38, 56 - armSwing, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#5d3a1a';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // ===== چوب بیسبال =====
+    ctx.save();
+    ctx.translate(40, 50 - armSwing);
+    const angles = [-0.5, -0.2, 0.1, 0.4];
+    ctx.rotate(angles[clubSwing] || 0);
+    
+    const clubGrad = ctx.createLinearGradient(-3, -50, 3, -50);
+    clubGrad.addColorStop(0, '#a67c52');
+    clubGrad.addColorStop(0.5, '#d4a574');
+    clubGrad.addColorStop(1, '#8b5a2b');
+    ctx.fillStyle = clubGrad;
+    ctx.fillRect(-3, -50, 6, 48);
+    
+    // دسته
+    ctx.fillStyle = '#6b3f1a';
+    ctx.fillRect(-3, -10, 6, 12);
+    
+    // سر چوب
+    ctx.fillStyle = '#b8804a';
+    ctx.beginPath();
+    ctx.ellipse(0, -45, 5, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // خطوط تزئینی
+    ctx.strokeStyle = '#5d3a1a';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-3, -30); ctx.lineTo(3, -30); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-3, -22); ctx.lineTo(3, -22); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-3, -15); ctx.lineTo(3, -15); ctx.stroke();
+    
+    ctx.restore();
+
+    // ===== ترک‌های چوب =====
+    ctx.strokeStyle = '#4a2a10';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(12, 40);
+    ctx.lineTo(15, 48);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(30, 45);
+    ctx.lineTo(32, 55);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  // ===== رسم مانع =====
+  function drawObstacle(obs, ox) {
+    if (obs.type === 'fire') {
+      drawFire(obs, ox);
+      return;
+    }
+    
+    ctx.save();
+    ctx.translate(ox, obs.y);
+
+    if (obs.type === 'cactus_small') {
+      ctx.fillStyle = '#2d5016';
+      ctx.fillRect(10, 0, 10, obs.height);
+      ctx.fillRect(0, 14, 10, 6);
+      ctx.fillRect(20, 22, 10, 6);
+      ctx.fillStyle = '#3a6b1e';
+      ctx.fillRect(12, 5, 6, obs.height - 10);
+    } else if (obs.type === 'cactus_big') {
+      ctx.fillStyle = '#2d5016';
+      ctx.fillRect(14, 0, 12, obs.height);
+      ctx.fillRect(0, 18, 14, 8);
+      ctx.fillRect(26, 28, 14, 8);
+      ctx.fillRect(0, 18, 8, 28);
+      ctx.fillRect(32, 28, 8, 28);
+      ctx.fillStyle = '#3a6b1e';
+      ctx.fillRect(16, 5, 8, obs.height - 10);
+    } else {
+      ctx.fillStyle = '#2d5016';
+      ctx.fillRect(5, 10, 10, 40);
+      ctx.fillRect(25, 5, 10, 45);
+      ctx.fillRect(45, 15, 10, 35);
+      ctx.fillRect(0, 20, 5, 6);
+      ctx.fillRect(35, 14, 10, 6);
+      ctx.fillRect(55, 22, 5, 6);
+      ctx.fillStyle = '#3a6b1e';
+      ctx.fillRect(7, 15, 6, 32);
+      ctx.fillRect(27, 10, 6, 38);
+      ctx.fillRect(47, 20, 6, 28);
+    }
+
+    ctx.restore();
+  }
+
+  function drawFire(obs, ox) {
+    ctx.save();
+    ctx.translate(ox, obs.y);
+    const colors = ['#ff4500', '#ff8c00', '#ffd700'];
+    const sizes = [0.8, 1, 0.9];
+    for (let i = 0; i < 3; i++) {
+      const offsetX = i * 10;
+      const flameH = obs.height * sizes[(obs.frame + i) % 3];
+      ctx.fillStyle = colors[(obs.frame + i) % 3];
+      ctx.beginPath();
+      ctx.moveTo(offsetX + 5, obs.height);
+      ctx.lineTo(offsetX + 10, obs.height - flameH);
+      ctx.lineTo(offsetX + 15, obs.height);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.fillStyle = '#ffff00';
+    ctx.beginPath();
+    ctx.moveTo(12, obs.height);
+    ctx.lineTo(15, obs.height - obs.height * 0.5);
+    ctx.lineTo(18, obs.height);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // ===== حلقه‌ی بازی =====
+  let lastTime = 0;
+  function gameLoop(timestamp) {
+    requestAnimationFrame(gameLoop);
+    const dt = Math.min((timestamp - lastTime) / 16.67, 3);
+    lastTime = timestamp;
+    if (gameState === 'playing') update(dt);
+    draw();
+  }
+  requestAnimationFrame(gameLoop);
+
+  // ===== PWA =====
+  const manifest = {
+    name: "TongTong Run", short_name: "TongTong",
+    description: "از تونگ‌تونگ سحور فرار کن!",
+    start_url: ".", display: "standalone",
+    background_color: "#1a1a2e", theme_color: "#1a1a2e", orientation: "landscape",
+    icons: [{ src: "data:image/svg+xml," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='#1a1a2e'/><text y='.9em' font-size='80' x='50%' text-anchor='middle'>🏃</text></svg>"), sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }]
+  };
+  const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+  document.getElementById('manifestPlaceholder').href = URL.createObjectURL(manifestBlob);
+
+  if ('serviceWorker' in navigator) {
+    const swCode = `
+      const CACHE = 'tongtong-v4';
+      const ASSETS = ['./', './index.html',
+        'https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Regular.woff2',
+        'https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Bold.woff2'];
+      self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS).catch(() => {}))); self.skipWaiting(); });
+      self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))); self.clients.claim(); });
+      self.addEventListener('fetch', e => {
+        if (e.request.method !== 'GET') return;
+        e.respondWith(caches.match(e.request).then(cached => {
+          if (cached) return cached;
+          return fetch(e.request).then(res => {
+            if (!res || res.status !== 200 || res.type === 'opaque') return res;
+            const clone = res.clone();
+            caches.open(CACHE).then(c => c.put(e.request, clone));
+            return res;
+          }).catch(() => caches.match('./index.html'));
+        }));
+      });
+    `;
+    const swBlob = new Blob([swCode], { type: 'application/javascript' });
+    navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+  }
+
+  document.getElementById('startHighScore').textContent = highScore;
+  document.getElementById('highScoreDisplay').textContent = highScore;
+</script>
+
+</body>
+</html>
